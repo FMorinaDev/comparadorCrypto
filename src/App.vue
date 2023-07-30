@@ -1,34 +1,17 @@
 <script setup>
-import { ref, reactive, onMounted } from "vue";
+import { ref, reactive} from "vue";
 import Alerta from "./components/Alerta.vue";
 import Spinner from "./components/Spinner.vue";
-const monedas = ref([
-  { codigo: 'USD', texto: 'Dolar de Estados Unidos'},
-  { codigo: 'EUR', texto: 'Euro'},
-  { codigo: 'GBP', texto: 'Libra Esterlina'},
-  { codigo: 'ARS', texto: 'Peso Argentino'},
-  { codigo: 'MXN', texto: 'Peso Mexicano'},
-])
-const cargando = ref(false);
-const criptomonedas = ref([]);
+import Cotizacion from "./components/Cotizacion.vue";
+import useCrypto from "./composables/useCrypto";
+
+const { monedas, criptomonedas, cotizacion, cargando, error } = useCrypto();
+
 const cotizar = reactive({
   moneda: '',
   criptomoneda: ''
 })
-const cotizacion = ref({});
-const error = ref('');
-onMounted(()=>{
-  try {
-    const url = 'https://min-api.cryptocompare.com/data/top/mktcapfull?limit=20&tsym=USD';
-    fetch(url)
-    .then(respuesta => respuesta.json())
-    .then(({Data}) => {
-      criptomonedas.value = Data;
-    })
-  } catch (error) {
-    console.error('Error al obtener las criptomonedas:', error);
-  }
-})
+
 const obtenerCotizacion = async() =>{
   try {
     cargando.value = true;
@@ -78,19 +61,7 @@ const cotizarCripto = () =>{
         <input type="submit" value="Cotizar" @click.prevent="cotizarCripto">
       </form>
       <Spinner v-if="cargando"/>
-      <div class="contenedor-resultado" v-if="cotizacion.IMAGEURL">
-        <h2>Cotización</h2>
-        <div class="resultado">
-          <img :src="`https://cryptocompare.com${cotizacion.IMAGEURL}`" alt="imagen crypto">
-          <div>
-            <p>El precio es de: <span>{{cotizacion.PRICE}}</span></p>
-            <p>Precio más alto del día: <span>{{cotizacion.HIGHDAY}}</span></p>
-            <p>Precio más bajo del día: <span>{{cotizacion.LOWDAY}}</span></p>
-            <p>Variacion ultimas 24HS: <span>{{cotizacion.CHANGEPCT24HOUR}}%</span></p>
-            <p>Última actualización: <span>{{cotizacion.LASTUPDATE}}</span></p>
-          </div>
-        </div>
-      </div>
+      <Cotizacion :cotizacion="cotizacion" v-if="cotizacion.IMAGEURL"/>
     </div>
   </div>  
 </template>
